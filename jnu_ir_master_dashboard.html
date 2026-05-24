@@ -1,0 +1,1178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JNU IR — Master Strategy Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0e0f11;
+  --bg2: #161719;
+  --bg3: #1e1f23;
+  --border: rgba(255,255,255,0.08);
+  --border2: rgba(255,255,255,0.14);
+  --text: #f0eee8;
+  --text2: #9a9890;
+  --text3: #5e5d5a;
+  --green: #2dbe8c;
+  --green-dim: rgba(45,190,140,0.12);
+  --green-border: rgba(45,190,140,0.3);
+  --blue: #4d9de0;
+  --blue-dim: rgba(77,157,224,0.12);
+  --blue-border: rgba(77,157,224,0.3);
+  --amber: #e8a83a;
+  --amber-dim: rgba(232,168,58,0.1);
+  --amber-border: rgba(232,168,58,0.28);
+  --red: #e05c5c;
+  --red-dim: rgba(224,92,92,0.1);
+  --purple: #9b7fe8;
+  --purple-dim: rgba(155,127,232,0.1);
+  --purple-border: rgba(155,127,232,0.3);
+  --coral: #e87a5a;
+  --serif: 'DM Serif Display', serif;
+  --sans: 'DM Sans', sans-serif;
+  --r: 10px;
+  --r-sm: 6px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--sans); background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.6; min-height: 100vh; }
+
+/* HEADER */
+.header { padding: 1.5rem 1.25rem 0; }
+.header-inner { max-width: 900px; margin: 0 auto; }
+.eyebrow { font-size: 11px; font-weight: 500; letter-spacing: .12em; color: var(--green); text-transform: uppercase; margin-bottom: 6px; }
+.title { font-family: var(--serif); font-size: clamp(22px, 5vw, 38px); color: var(--text); line-height: 1.15; margin-bottom: 6px; }
+.subtitle { font-size: 13px; color: var(--text2); }
+.stats-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 1.25rem; }
+.stat { background: var(--bg2); border: 0.5px solid var(--border); border-radius: var(--r-sm); padding: 8px 14px; }
+.stat-val { font-size: 16px; font-weight: 600; color: var(--text); line-height: 1; }
+.stat-label { font-size: 10px; color: var(--text3); margin-top: 2px; letter-spacing: .04em; }
+
+/* NAV */
+.nav-wrap { position: sticky; top: 0; z-index: 100; background: var(--bg); border-bottom: 0.5px solid var(--border); margin-top: 1.25rem; }
+.nav { display: flex; overflow-x: auto; max-width: 900px; margin: 0 auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+.nav::-webkit-scrollbar { display: none; }
+.nav-btn { flex-shrink: 0; padding: 12px 16px; font-size: 12px; font-family: var(--sans); font-weight: 500; color: var(--text3); background: none; border: none; border-bottom: 2px solid transparent; cursor: pointer; white-space: nowrap; transition: all .15s; letter-spacing: .02em; }
+.nav-btn:hover { color: var(--text2); }
+.nav-btn.active { color: var(--text); border-bottom-color: var(--green); }
+
+/* MAIN */
+.main { max-width: 900px; margin: 0 auto; padding: 0 1.25rem 3rem; }
+.section { display: none; padding-top: 1.5rem; }
+.section.active { display: block; }
+.sec-title { font-family: var(--serif); font-size: clamp(16px, 3vw, 20px); color: var(--text); margin-bottom: 4px; }
+.sec-sub { font-size: 12px; color: var(--text2); margin-bottom: 1.25rem; }
+.rule { height: 0.5px; background: var(--border); margin: 1.5rem 0; }
+
+/* GRID HELPERS */
+.g2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 8px; }
+.g3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; }
+.g4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; }
+
+/* CARD */
+.card { background: var(--bg2); border: 0.5px solid var(--border); border-radius: var(--r); padding: 1rem; }
+.card-sm { background: var(--bg3); border: 0.5px solid var(--border); border-radius: var(--r-sm); padding: .75rem 1rem; }
+.card-title { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 3px; }
+.card-sub { font-size: 12px; color: var(--text2); line-height: 1.5; }
+
+/* PILLS / BADGES */
+.pill { display: inline-block; font-size: 10px; font-weight: 500; padding: 2px 8px; border-radius: 4px; white-space: nowrap; }
+.pill-green { background: var(--green-dim); color: var(--green); border: 0.5px solid var(--green-border); }
+.pill-blue { background: var(--blue-dim); color: var(--blue); border: 0.5px solid var(--blue-border); }
+.pill-amber { background: var(--amber-dim); color: var(--amber); border: 0.5px solid var(--amber-border); }
+.pill-purple { background: var(--purple-dim); color: var(--purple); border: 0.5px solid var(--purple-border); }
+.pill-red { background: var(--red-dim); color: var(--red); }
+.pill-gray { background: var(--bg3); color: var(--text2); border: 0.5px solid var(--border); }
+
+/* BOOK ROWS */
+.book-row { display: flex; gap: 12px; align-items: flex-start; padding: 12px 0; border-bottom: 0.5px solid var(--border); }
+.book-row:last-child { border-bottom: none; }
+.book-num { font-size: 22px; font-weight: 600; color: var(--text3); min-width: 30px; line-height: 1.1; }
+.book-info { flex: 1; }
+.book-title { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 2px; }
+.book-meta { font-size: 11px; color: var(--text2); line-height: 1.4; }
+.book-right { text-align: right; flex-shrink: 0; }
+.book-marks { font-size: 16px; font-weight: 600; color: var(--text); }
+.book-munit { font-size: 10px; color: var(--text3); }
+
+/* TIMELINE */
+.tl-row { display: grid; grid-template-columns: 90px 1fr; gap: 12px; padding: 12px 0; border-bottom: 0.5px solid var(--border); align-items: start; }
+.tl-row:last-child { border-bottom: none; }
+.tl-when { font-size: 12px; font-weight: 500; color: var(--text2); }
+.tl-sub { font-size: 10px; color: var(--text3); margin-top: 2px; }
+.tl-items { display: flex; flex-direction: column; gap: 4px; }
+.tl-item { font-size: 12px; color: var(--text2); padding-left: 10px; border-left: 1.5px solid var(--bg3); line-height: 1.5; }
+.tl-item strong { color: var(--text); }
+.tl-item .tag { font-size: 10px; color: var(--green); }
+
+/* UNIT TABLE */
+.unit-row { display: grid; grid-template-columns: 36px 1fr 44px 60px; gap: 10px; align-items: center; padding: 9px 0; border-bottom: 0.5px solid var(--border); font-size: 13px; }
+.unit-row:last-child { border-bottom: none; }
+.unit-row.header { font-size: 10px; font-weight: 500; color: var(--text3); text-transform: uppercase; letter-spacing: .06em; }
+.unit-label { font-size: 11px; font-weight: 500; color: var(--text3); }
+.unit-name { color: var(--text); }
+.unit-qs { color: var(--text3); text-align: center; font-size: 12px; }
+.target-pill { font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 4px; text-align: center; }
+
+/* CERT */
+.cert-card { background: var(--bg2); border: 0.5px solid var(--border); border-radius: var(--r); padding: 1rem; margin-bottom: 8px; }
+.cert-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 6px; }
+.cert-org { font-size: 10px; color: var(--text3); margin-bottom: 2px; letter-spacing: .03em; }
+.cert-title { font-size: 13px; font-weight: 500; color: var(--text); line-height: 1.3; }
+.cert-desc { font-size: 12px; color: var(--text2); line-height: 1.5; margin-bottom: 8px; }
+.cert-footer { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.when-tag { font-size: 10px; color: var(--text2); }
+
+/* CAREER PHASE */
+.phase { background: var(--bg2); border: 0.5px solid var(--border); border-radius: var(--r); margin-bottom: 10px; overflow: hidden; }
+.phase-head { padding: .875rem 1rem; border-bottom: 0.5px solid var(--border); display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.phase-period { font-size: 12px; font-weight: 500; color: var(--text); }
+.phase-title { font-size: 12px; color: var(--text2); }
+.phase-body { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+.phase-col { padding: .75rem 1rem; border-right: 0.5px solid var(--border); }
+.phase-col:last-child { border-right: none; }
+.col-label { font-size: 10px; font-weight: 500; color: var(--text3); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 6px; }
+.col-item { font-size: 12px; color: var(--text2); padding: 3px 0; border-bottom: 0.5px dotted var(--border); line-height: 1.4; }
+.col-item:last-child { border-bottom: none; }
+.col-item strong { color: var(--text); }
+.col-item .earn { color: var(--green); font-size: 11px; }
+.col-item .note { color: var(--amber); font-size: 11px; }
+
+/* INCOME CARDS */
+.income-card { background: var(--bg2); border: 0.5px solid var(--border); border-radius: var(--r); padding: 1rem; }
+.income-period { font-size: 10px; font-weight: 500; color: var(--text3); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 4px; }
+.income-range { font-size: 20px; font-weight: 600; color: var(--text); line-height: 1; margin-bottom: 2px; }
+.income-unit { font-size: 10px; color: var(--text3); margin-bottom: 8px; }
+.income-source { font-size: 11px; color: var(--text2); line-height: 1.5; }
+
+/* WRITING */
+.writing-card { background: var(--bg2); border: 0.5px solid var(--border); border-radius: var(--r); padding: 1rem; margin-bottom: 8px; position: relative; overflow: hidden; }
+.writing-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; }
+.wc-green::before { background: var(--green); }
+.wc-blue::before { background: var(--blue); }
+.wc-amber::before { background: var(--amber); }
+.wc-purple::before { background: var(--purple); }
+.writing-type { font-size: 10px; font-weight: 500; color: var(--text3); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 4px; }
+.writing-title { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 4px; line-height: 1.3; }
+.writing-desc { font-size: 12px; color: var(--text2); line-height: 1.5; margin-bottom: 8px; }
+.writing-footer { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+
+/* PORTFOLIO */
+.portfolio-card { background: var(--bg2); border: 0.5px solid var(--border); border-radius: var(--r); padding: 1rem; }
+.portfolio-icon { font-size: 24px; margin-bottom: 8px; }
+.portfolio-title { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 4px; }
+.portfolio-desc { font-size: 12px; color: var(--text2); line-height: 1.5; }
+
+/* SCORE MATH */
+.score-tier { display: grid; grid-template-columns: 72px 1fr; gap: 14px; align-items: center; padding: 10px 0; border-bottom: 0.5px solid var(--border); }
+.score-tier:last-child { border-bottom: none; }
+.score-num { font-size: 22px; font-weight: 600; text-align: center; line-height: 1; }
+.score-info-title { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 2px; }
+.score-info-desc { font-size: 12px; color: var(--text2); line-height: 1.4; }
+
+/* WEEK GRID */
+.week-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
+.week-card { background: var(--bg2); border: 0.5px solid var(--border); border-radius: var(--r); padding: .875rem; position: relative; overflow: hidden; }
+.week-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; }
+.wk-g::before { background: var(--green); }
+.wk-b::before { background: var(--blue); }
+.wk-a::before { background: var(--amber); }
+.wk-p::before { background: var(--purple); }
+.wk-c::before { background: var(--coral); }
+.wk-r::before { background: var(--red); }
+.week-label { font-size: 10px; font-weight: 500; color: var(--text3); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 3px; }
+.week-title { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 3px; }
+.week-unit { font-size: 11px; color: var(--text3); margin-bottom: 6px; }
+.week-tasks { display: flex; flex-direction: column; gap: 3px; }
+.wt { font-size: 11px; color: var(--text2); padding-left: 8px; border-left: 1.5px solid var(--bg3); line-height: 1.4; }
+.wt strong { color: var(--text); }
+.wk-tag { font-size: 10px; background: var(--bg3); color: var(--text3); padding: 2px 7px; border-radius: 3px; display: inline-block; margin-top: 5px; }
+
+/* QUESTION BOOKS */
+.qbook { display: flex; gap: 12px; align-items: flex-start; padding: 10px 0; border-bottom: 0.5px solid var(--border); }
+.qbook:last-child { border-bottom: none; }
+.qbook-num { font-size: 18px; font-weight: 600; color: var(--blue); min-width: 26px; }
+.qbook-info .title { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 2px; }
+.qbook-info .meta { font-size: 11px; color: var(--text2); }
+
+/* EXAM DAY */
+.exam-block { background: var(--bg2); border: 0.5px solid var(--border); border-radius: var(--r); padding: 1rem; }
+.exam-pass { display: flex; gap: 10px; padding: 8px 0; border-bottom: 0.5px solid var(--border); }
+.exam-pass:last-child { border-bottom: none; }
+.pass-time { font-size: 11px; font-weight: 500; color: var(--amber); min-width: 70px; flex-shrink: 0; }
+.pass-text { font-size: 12px; color: var(--text2); line-height: 1.5; }
+.pass-text strong { color: var(--text); }
+
+/* DAILY SCHEDULE */
+.sched-item { display: flex; gap: 12px; align-items: center; padding: 8px 0; border-bottom: 0.5px solid var(--border); }
+.sched-item:last-child { border-bottom: none; }
+.sched-time { font-size: 14px; font-weight: 600; color: var(--green); min-width: 52px; }
+.sched-label { font-size: 12px; color: var(--text2); line-height: 1.4; }
+.sched-label strong { color: var(--text); }
+
+/* VERDICT BOX */
+.verdict { background: var(--green-dim); border: 0.5px solid var(--green-border); border-radius: var(--r); padding: 1rem; margin-bottom: 1.25rem; }
+.verdict p { font-size: 13px; color: var(--text); line-height: 1.6; }
+
+/* PM STEP */
+.pm-step { background: var(--bg2); border: 0.5px solid var(--border); border-radius: var(--r); padding: 1rem; margin-bottom: 8px; }
+.pm-step-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.pm-step-when { font-size: 12px; font-weight: 500; color: var(--text); }
+.pm-items { display: flex; flex-direction: column; gap: 4px; }
+.pm-item { font-size: 12px; color: var(--text2); padding-left: 10px; border-left: 1.5px solid var(--bg3); line-height: 1.5; }
+.pm-item strong { color: var(--text); }
+.pm-item .free { color: var(--green); font-size: 11px; }
+.pm-item .pay { color: var(--amber); font-size: 11px; }
+
+/* MOBILE ONLY */
+@media (max-width: 480px) {
+  .book-row { gap: 8px; }
+  .book-num { font-size: 18px; min-width: 24px; }
+  .book-right { display: none; }
+  .phase-body { grid-template-columns: 1fr; }
+  .phase-col { border-right: none; border-bottom: 0.5px solid var(--border); }
+  .phase-col:last-child { border-bottom: none; }
+  .tl-row { grid-template-columns: 80px 1fr; gap: 8px; }
+  .unit-row { grid-template-columns: 30px 1fr 40px; }
+  .unit-row .book-col { display: none; }
+  .score-tier { grid-template-columns: 60px 1fr; gap: 10px; }
+}
+
+/* SMOOTH SCROLL */
+html { scroll-behavior: smooth; }
+
+/* ACCENT LINE */
+.accent-line { height: 1px; background: linear-gradient(90deg, var(--green), var(--blue), transparent); margin: 1.5rem 0; opacity: 0.4; }
+
+/* SECTION HEADERS */
+.sh { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }
+.sh-title { font-size: 11px; font-weight: 500; color: var(--text3); text-transform: uppercase; letter-spacing: .09em; }
+.sh-count { font-size: 11px; color: var(--text3); }
+
+/* PILLAR GRID */
+.pillar-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; margin-bottom: 1.25rem; }
+.pillar { background: var(--bg2); border: 0.5px solid var(--border); border-radius: var(--r); padding: .875rem 1rem; text-align: center; }
+.pillar-icon { font-size: 20px; margin-bottom: 6px; display: block; }
+.pillar-title { font-size: 12px; font-weight: 500; color: var(--text); margin-bottom: 3px; }
+.pillar-sub { font-size: 11px; color: var(--text3); line-height: 1.4; }
+
+/* VISION */
+.vision { font-family: var(--serif); font-size: clamp(13px, 2.5vw, 16px); color: var(--text2); line-height: 1.8; margin-bottom: 1.25rem; border-left: 2px solid var(--green); padding-left: 1rem; font-style: italic; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-inner">
+    <div class="eyebrow">JNU MA International Relations — Master Strategy</div>
+    <h1 class="title">The Complete Playbook</h1>
+    <p class="subtitle">CUET PG 2027 · Exam, Career, Research & Wealth Blueprint · 11 Months + Beyond</p>
+    <div class="stats-row">
+      <div class="stat"><div class="stat-val">11</div><div class="stat-label">Months to exam</div></div>
+      <div class="stat"><div class="stat-val">5</div><div class="stat-label">Core books</div></div>
+      <div class="stat"><div class="stat-val">63/75</div><div class="stat-label">Target correct</div></div>
+      <div class="stat"><div class="stat-val">245+</div><div class="stat-label">Target raw score</div></div>
+      <div class="stat"><div class="stat-val">87%+</div><div class="stat-label">Target percentile</div></div>
+      <div class="stat"><div class="stat-val">82</div><div class="stat-label">JNU IR cutoff 2025</div></div>
+      <div class="stat"><div class="stat-val">₹10Cr+</div><div class="stat-label">10-year ceiling</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="nav-wrap">
+  <nav class="nav" role="tablist">
+    <button class="nav-btn active" onclick="show('overview')" role="tab">Overview</button>
+    <button class="nav-btn" onclick="show('books')" role="tab">Books & Exam</button>
+    <button class="nav-btn" onclick="show('timeline')" role="tab">11-Month Plan</button>
+    <button class="nav-btn" onclick="show('certs')" role="tab">Certificates</button>
+    <button class="nav-btn" onclick="show('career')" role="tab">Career Blueprint</button>
+    <button class="nav-btn" onclick="show('writing')" role="tab">Writing & Portfolio</button>
+    <button class="nav-btn" onclick="show('reading')" role="tab">Reading List</button>
+  </nav>
+</div>
+
+<div class="main">
+
+<!-- ===== OVERVIEW ===== -->
+<div id="overview" class="section active">
+  <h2 class="sec-title">The Mission</h2>
+  <p class="sec-sub">A single profile that compounds across a decade</p>
+  <p class="vision">"An intellectually rich, financially uncapped career at the intersection of international relations, artificial intelligence governance, and product thinking — the exact combination the next decade will pay most for."</p>
+
+  <div class="sh"><span class="sh-title">Five pillars</span></div>
+  <div class="pillar-grid">
+    <div class="pillar">
+      <span class="pillar-icon">🌐</span>
+      <div class="pillar-title">IR + Policy</div>
+      <div class="pillar-sub">JNU MA · Research · Think tanks</div>
+    </div>
+    <div class="pillar">
+      <span class="pillar-icon">📊</span>
+      <div class="pillar-title">Data + Analytics</div>
+      <div class="pillar-sub">Google certs · R · GIS · OSINT</div>
+    </div>
+    <div class="pillar">
+      <span class="pillar-icon">💻</span>
+      <div class="pillar-title">Product Management</div>
+      <div class="pillar-sub">Policy tech · Govtech · AI products</div>
+    </div>
+    <div class="pillar">
+      <span class="pillar-icon">🤖</span>
+      <div class="pillar-title">AI Governance</div>
+      <div class="pillar-sub">AIGP exam · EU AI Act · GPAI</div>
+    </div>
+    <div class="pillar">
+      <span class="pillar-icon">🏛️</span>
+      <div class="pillar-title">Advisory + Build</div>
+      <div class="pillar-sub">Consulting · Products · Firm</div>
+    </div>
+  </div>
+
+  <div class="rule"></div>
+  <div class="sh"><span class="sh-title">4-hour daily split</span></div>
+  <div class="card">
+    <div class="sched-item"><div class="sched-time">60 min</div><div class="sched-label"><strong>Primary book reading</strong> — current week's book, active reading with notes</div></div>
+    <div class="sched-item"><div class="sched-time">30 min</div><div class="sched-label"><strong>MCQs on today's chapter</strong> — 15–20 questions immediately after reading</div></div>
+    <div class="sched-item"><div class="sched-time">45 min</div><div class="sched-label"><strong>Saurabh Pandey</strong> — current affairs audio, background while making notes</div></div>
+    <div class="sched-item"><div class="sched-time">30 min</div><div class="sched-label"><strong>Previous day revision</strong> — short notes only, not re-reading</div></div>
+    <div class="sched-item"><div class="sched-time">55 min</div><div class="sched-label"><strong>PYQs</strong> (Weeks 1–14) or <strong>Full mock</strong> (Weeks 15–20) — always timed</div></div>
+  </div>
+
+  <div class="rule"></div>
+  <div class="sh"><span class="sh-title">Age & timing verdict</span></div>
+  <div class="verdict">
+    <p>Giving this exam at <strong>23 is completely normal</strong> — right in the middle of the typical range. UPSC general goes to 32. Think tanks, fellowships, and PhD admissions have no age sensitivity at this stage. The only number that matters is the CUET PG cutoff. A 23-year-old entering JNU with Google Analytics done, a language started, and a clear research direction is <strong>ahead of most 21-year-olds</strong> who showed up straight from BA.</p>
+  </div>
+
+  <div class="rule"></div>
+  <div class="sh"><span class="sh-title">4 hours/day — is it enough?</span></div>
+  <div class="g3">
+    <div class="card-sm"><div class="card-title">5–6 months out</div><div class="card-sub">4 hrs/day is <span style="color:var(--green)">sufficient</span> if structured. Consistency over marathon sessions.</div></div>
+    <div class="card-sm"><div class="card-title">Under 4 months</div><div class="card-sub">Scale up to <span style="color:var(--amber)">5–6 hrs/day</span>. Current timeline is healthy — no need to rush.</div></div>
+    <div class="card-sm"><div class="card-title">Key rule</div><div class="card-sub">Read → test immediately → move on. MCQs after every chapter reveal real gaps.</div></div>
+  </div>
+</div>
+
+<!-- ===== BOOKS & EXAM ===== -->
+<div id="books" class="section">
+  <h2 class="sec-title">Books & Exam Strategy</h2>
+  <p class="sec-sub">Sequenced strictly by marks on the table — highest value first</p>
+
+  <div class="sh"><span class="sh-title">Mandatory books — read in this exact order</span></div>
+  <div class="card" style="margin-bottom:1.25rem">
+    <div class="book-row">
+      <div class="book-num" style="color:var(--green)">1</div>
+      <div class="book-info">
+        <div class="book-title">Pavneet Singh — International Relations</div>
+        <div class="book-meta">Units IV & VIII · Weeks 1–4 · Read twice · Highest question load</div>
+        <div style="margin-top:5px"><span class="pill pill-green">Start here · Day 1</span></div>
+      </div>
+      <div class="book-right"><div class="book-marks" style="color:var(--green)">~92</div><div class="book-munit">marks</div></div>
+    </div>
+    <div class="book-row">
+      <div class="book-num" style="color:var(--blue)">2</div>
+      <div class="book-info">
+        <div class="book-title">NCERT Political Science — Class 11 & 12 (all four books)</div>
+        <div class="book-meta">Units V, VI partial, VII partial · Fast read · See order below</div>
+        <div style="margin-top:5px"><span class="pill pill-blue">Weeks 5–6</span></div>
+      </div>
+      <div class="book-right"><div class="book-marks" style="color:var(--blue)">~76</div><div class="book-munit">marks</div></div>
+    </div>
+    <div class="book-row">
+      <div class="book-num" style="color:var(--amber)">3</div>
+      <div class="book-info">
+        <div class="book-title">OP Gauba — An Introduction to Political Theory</div>
+        <div class="book-meta">Unit III · Weeks 7–9 · Selected chapters only: Rights, Justice, Liberty, Equality, Democracy, Nationalism, Sovereignty</div>
+        <div style="margin-top:5px"><span class="pill pill-amber">Selective read</span></div>
+      </div>
+      <div class="book-right"><div class="book-marks" style="color:var(--amber)">~36</div><div class="book-munit">marks</div></div>
+    </div>
+    <div class="book-row">
+      <div class="book-num" style="color:var(--purple)">4</div>
+      <div class="book-info">
+        <div class="book-title">Mukherjee & Ramaswamy — History of Political Thought</div>
+        <div class="book-meta">Unit I · Weeks 10–12 · One thinker per sitting · Build comparison table</div>
+        <div style="margin-top:5px"><span class="pill pill-purple">Build thinker table</span></div>
+      </div>
+      <div class="book-right"><div class="book-marks" style="color:var(--purple)">~40</div><div class="book-munit">marks</div></div>
+    </div>
+    <div class="book-row">
+      <div class="book-num" style="color:var(--coral)">5</div>
+      <div class="book-info">
+        <div class="book-title">Bidyut Chakrabarty — Modern Indian Political Thought</div>
+        <div class="book-meta">Unit II · Weeks 13–14 · Read comparatively · Gandhi vs Ambedkar, Nehru vs Tilak</div>
+        <div style="margin-top:5px"><span class="pill pill-gray">Build thinker table</span></div>
+      </div>
+      <div class="book-right"><div class="book-marks" style="color:var(--coral)">~32</div><div class="book-munit">marks</div></div>
+    </div>
+  </div>
+
+  <div class="sh"><span class="sh-title">NCERT order (he has started Indian Constitution at Work — finish it first)</span></div>
+  <div class="g2" style="margin-bottom:1.25rem">
+    <div class="card-sm"><div class="card-title">① Indian Constitution at Work — Cl.11</div><div class="card-sub">Already started. Finish remaining units, 1/day. Unit V core content.</div></div>
+    <div class="card-sm"><div class="card-title">② Political Theory — Cl.11</div><div class="card-sub">8 days. Freedom, equality, rights, justice. First pass before Gauba.</div></div>
+    <div class="card-sm"><div class="card-title">③ Politics in India Since Independence — Cl.12</div><div class="card-sub">9 days. Most tested NCERT. Build political events timeline after.</div></div>
+    <div class="card-sm"><div class="card-title">④ Contemporary World Politics — Cl.12</div><div class="card-sub">7 days. Fast read — Pavneet covers this ground more deeply.</div></div>
+  </div>
+
+  <div class="sh"><span class="sh-title">Optional books — ranked by exam ROI</span></div>
+  <div class="g3" style="margin-bottom:1.25rem">
+    <div class="card-sm"><div class="card-title">① Andrew Heywood — Global Politics</div><div class="card-sub"><span class="pill pill-amber" style="margin-bottom:4px;display:inline-block">August only if 1 week ahead</span> Ch.1–6. IR theory depth + Unit VI gap.</div></div>
+    <div class="card-sm"><div class="card-title">② V.N. Khanna — IR</div><div class="card-sub"><span class="pill pill-amber" style="margin-bottom:4px;display:inline-block">October, 4–5 days only</span> Ch.12–18. Indian FP + South Asia reinforcement.</div></div>
+    <div class="card-sm"><div class="card-title">③ Goldstein & Pevehouse</div><div class="card-sub"><span class="pill pill-gray" style="margin-bottom:4px;display:inline-block">Post-admission only</span> Too deep for MCQ format. Read at JNU.</div></div>
+  </div>
+
+  <div class="rule"></div>
+  <div class="sh"><span class="sh-title">Unit-to-book mapping & targets</span></div>
+  <div class="card" style="margin-bottom:1.25rem">
+    <div class="unit-row header"><div>Unit</div><div>Topic</div><div>Qs</div><div>Target</div></div>
+    <div class="unit-row"><div class="unit-label">IV</div><div class="unit-name">International Relations</div><div class="unit-qs">~16</div><div><span class="target-pill" style="background:var(--green-dim);color:var(--green)">14–15</span></div></div>
+    <div class="unit-row"><div class="unit-label">V</div><div class="unit-name">Indian Govt & Politics</div><div class="unit-qs">~13</div><div><span class="target-pill" style="background:var(--green-dim);color:var(--green)">11–12</span></div></div>
+    <div class="unit-row"><div class="unit-label">III</div><div class="unit-name">Political Theory</div><div class="unit-qs">~9</div><div><span class="target-pill" style="background:var(--green-dim);color:var(--green)">8–9</span></div></div>
+    <div class="unit-row"><div class="unit-label">VIII</div><div class="unit-name">Contemporary Issues</div><div class="unit-qs">~7</div><div><span class="target-pill" style="background:var(--green-dim);color:var(--green)">6–7</span></div></div>
+    <div class="unit-row"><div class="unit-label">I</div><div class="unit-name">Western Political Philosophy</div><div class="unit-qs">~11</div><div><span class="target-pill" style="background:var(--amber-dim);color:var(--amber)">8–9</span></div></div>
+    <div class="unit-row"><div class="unit-label">II</div><div class="unit-name">Indian Political Thought</div><div class="unit-qs">~9</div><div><span class="target-pill" style="background:var(--amber-dim);color:var(--amber)">7–8</span></div></div>
+    <div class="unit-row"><div class="unit-label">VI</div><div class="unit-name">Comparative Politics</div><div class="unit-qs">~7</div><div><span class="target-pill" style="background:var(--red-dim);color:var(--red)">4–5</span></div></div>
+    <div class="unit-row"><div class="unit-label">VII</div><div class="unit-name">Public Policies</div><div class="unit-qs">~5</div><div><span class="target-pill" style="background:var(--amber-dim);color:var(--amber)">3–4</span></div></div>
+    <div style="border-top:0.5px solid var(--border2);margin-top:8px;padding-top:8px;display:flex;justify-content:space-between">
+      <span style="font-size:13px;font-weight:500;color:var(--text)">Total target</span>
+      <span style="font-size:16px;font-weight:600;color:var(--blue)">61–64 / 75</span>
+    </div>
+  </div>
+
+  <div class="sh"><span class="sh-title">Score maths</span></div>
+  <div class="card" style="margin-bottom:1.25rem">
+    <div class="score-tier"><div class="score-num" style="color:var(--red)">54–57</div><div><div class="score-info-title">Floor — do not aim for this</div><div class="score-info-desc">~80–82 percentile. No buffer if cutoff rises. Aim higher.</div></div></div>
+    <div class="score-tier"><div class="score-num" style="color:var(--amber)">58–62</div><div><div class="score-info-title">Competitive — safe range</div><div class="score-info-desc">~84–87 percentile. Comfortable buffer against cutoff fluctuation.</div></div></div>
+    <div class="score-tier"><div class="score-num" style="color:var(--green)">63–68</div><div><div class="score-info-title">Target — topper territory</div><div class="score-info-desc">63 correct × 4 − 7 wrong = <strong style="color:var(--text)">245 marks → ~87–89 percentile</strong>. Guarantees seat.</div></div></div>
+  </div>
+
+  <div class="sh"><span class="sh-title">Question books — buy in this order</span></div>
+  <div class="card" style="margin-bottom:1.25rem">
+    <div class="qbook"><div class="qbook-num">1</div><div class="qbook-info"><div class="title">CUET PG PYQs — Two Brothers / Arihant compilation</div><div class="meta">Buy immediately · All years unit-wise with solutions · Most important purchase</div></div><span class="pill pill-green" style="flex-shrink:0">Buy now</span></div>
+    <div class="qbook"><div class="qbook-num">2</div><div class="qbook-info"><div class="title">Arihant — CUET PG Political Science MCQ Book</div><div class="meta">Topic-wise MCQs all 8 units · Use from Week 2 for daily practice</div></div><span class="pill pill-blue" style="flex-shrink:0">Week 1</span></div>
+    <div class="qbook"><div class="qbook-num">3</div><div class="qbook-info"><div class="title">Testbook — CUET PG Political Science (app)</div><div class="meta">Topic-wise tests + analytics dashboard · Free tier usable to start</div></div><span class="pill pill-gray" style="flex-shrink:0">Free</span></div>
+    <div class="qbook"><div class="qbook-num">4</div><div class="qbook-info"><div class="title">EduGorilla — CUET PG Full Mock Tests</div><div class="meta">75-question timed full mocks · Buy only in Week 15</div></div><span class="pill pill-amber" style="flex-shrink:0">Week 15</span></div>
+    <div class="qbook"><div class="qbook-num">5</div><div class="qbook-info"><div class="title">UGC NET Political Science PYQs</div><div class="meta">Units I & II only · Harder than CUET = better prep · Free Telegram PDFs</div></div><span class="pill pill-gray" style="flex-shrink:0">Free</span></div>
+  </div>
+
+  <div class="sh"><span class="sh-title">Exam day — 3-pass strategy (90 min, 75 questions)</span></div>
+  <div class="exam-block">
+    <div class="exam-pass"><div class="pass-time">0–25 min</div><div class="pass-text"><strong>Pass 1 — Certainties only.</strong> Attempt only questions you are 100% sure about. Skip anything with doubt. Target: 35–40 answered. Pace: ~40 sec/question.</div></div>
+    <div class="exam-pass"><div class="pass-time">25–55 min</div><div class="pass-text"><strong>Pass 2 — Can eliminate 2 options.</strong> Return to skipped questions. Attempt if you can eliminate at least 2 options. If 50/50 between 2 — skip.</div></div>
+    <div class="exam-pass"><div class="pass-time">55–80 min</div><div class="pass-text"><strong>Pass 3 — 3 options eliminated.</strong> Only attempt if 3 options are clearly wrong. Pure guess (1-in-4) = skip. Negative marking is real.</div></div>
+    <div class="exam-pass"><div class="pass-time">80–90 min</div><div class="pass-text"><strong>Final review.</strong> Don't change answers unless 100% certain it's wrong. First instinct is usually correct. Submit with confidence. Start with Unit IV questions.</div></div>
+  </div>
+</div>
+
+<!-- ===== 11-MONTH TIMELINE ===== -->
+<div id="timeline" class="section">
+  <h2 class="sec-title">11-Month Master Plan</h2>
+  <p class="sec-sub">May 2026 → March/April 2027 exam window</p>
+
+  <div class="sh"><span class="sh-title">Weekly reading plan — 20 weeks</span></div>
+  <div class="week-grid" style="margin-bottom:1.5rem">
+    <div class="week-card wk-g">
+      <div class="week-label">Weeks 1–2</div>
+      <div class="week-title">Pavneet Singh — Part 1</div>
+      <div class="week-unit">Unit IV: IR theories</div>
+      <div class="week-tasks"><div class="wt">Realism, Liberalism, Constructivism, Marxism</div><div class="wt">India's foreign policy basics</div><div class="wt"><strong>Saurabh Pandey starts now</strong></div></div>
+      <div class="wk-tag">MCQs: IR theories daily</div>
+    </div>
+    <div class="week-card wk-g">
+      <div class="week-label">Weeks 3–4</div>
+      <div class="week-title">Pavneet Singh — Part 2</div>
+      <div class="week-unit">Unit IV + VIII</div>
+      <div class="week-tasks"><div class="wt">UN, WTO, SAARC, BRICS, Cold War</div><div class="wt">India-US, India-China, India-Russia</div><div class="wt">Contemporary issues</div></div>
+      <div class="wk-tag">20 MCQs/day</div>
+    </div>
+    <div class="week-card wk-b">
+      <div class="week-label">Weeks 5–6</div>
+      <div class="week-title">All 4 NCERTs</div>
+      <div class="week-unit">Units V, VI partial, VII</div>
+      <div class="week-tasks"><div class="wt">1 chapter per sitting, fast read</div><div class="wt">Constitution, parties, elections</div><div class="wt">Comparative systems (US, UK, China)</div></div>
+      <div class="wk-tag">Revise: Pavneet theories</div>
+    </div>
+    <div class="week-card wk-a">
+      <div class="week-label">Weeks 7–9</div>
+      <div class="week-title">OP Gauba — selected</div>
+      <div class="week-unit">Unit III: Political Theory</div>
+      <div class="week-tasks"><div class="wt">Rights, Justice, Liberty — wk 7</div><div class="wt">Equality, Democracy — wk 8</div><div class="wt">Nationalism, Sovereignty — wk 9</div></div>
+      <div class="wk-tag">Flashcard per concept</div>
+    </div>
+    <div class="week-card wk-p">
+      <div class="week-label">Weeks 10–12</div>
+      <div class="week-title">Mukherjee & Ramaswamy</div>
+      <div class="week-unit">Unit I: Western Philosophy</div>
+      <div class="week-tasks"><div class="wt">Plato, Aristotle — wk 10</div><div class="wt">Hobbes, Locke, Rousseau — wk 11</div><div class="wt">Marx, Hegel, Machiavelli — wk 12</div></div>
+      <div class="wk-tag">Build thinker table</div>
+    </div>
+    <div class="week-card wk-c">
+      <div class="week-label">Weeks 13–14</div>
+      <div class="week-title">Bidyut Chakrabarty</div>
+      <div class="week-unit">Unit II: Indian Pol Thought</div>
+      <div class="week-tasks"><div class="wt">Gandhi, Tilak, Ambedkar — wk 13</div><div class="wt">Nehru, Tagore, Lohia — wk 14</div><div class="wt"><strong>Pavneet 2nd pass</strong> — IR only</div></div>
+      <div class="wk-tag">Gandhi vs Ambedkar table</div>
+    </div>
+    <div class="week-card wk-r">
+      <div class="week-label">Weeks 15–17</div>
+      <div class="week-title">PYQs — all years</div>
+      <div class="week-unit">All 8 units</div>
+      <div class="week-tasks"><div class="wt">Every CUET PG PYQ, timed</div><div class="wt">UGC NET PYQs — Units I & II</div><div class="wt">Wrong answer log daily</div></div>
+      <div class="wk-tag">2-hr notes revision Sunday</div>
+    </div>
+    <div class="week-card wk-r">
+      <div class="week-label">Weeks 18–20</div>
+      <div class="week-title">Full mocks — daily</div>
+      <div class="week-unit">Exam simulation</div>
+      <div class="week-tasks"><div class="wt">1 EduGorilla mock/day</div><div class="wt">1-hr mistake review after</div><div class="wt">Short notes only, no new reading</div></div>
+      <div class="wk-tag">Last 6-month current affairs</div>
+    </div>
+  </div>
+
+  <div class="sh"><span class="sh-title">Month-by-month — all streams</span></div>
+  <div class="card">
+    <div class="tl-row">
+      <div><div class="tl-when">May–June</div><div class="tl-sub">NCERTs + Coursera sale</div></div>
+      <div class="tl-items">
+        <div class="tl-item"><strong>Finish NCERTs</strong> in order above · 1 unit/chapter per day</div>
+        <div class="tl-item"><strong>Coursera summer sale</strong> — buy access, start Google Analytics last week June <span class="tag">1 hr/day separate</span></div>
+        <div class="tl-item"><strong>USIP certs</strong> — 1 course/month on weekends only</div>
+        <div class="tl-item">Saurabh Pandey daily · Testbook MCQs after each chapter</div>
+      </div>
+    </div>
+    <div class="tl-row">
+      <div><div class="tl-when">July</div><div class="tl-sub">Pavneet begins</div></div>
+      <div class="tl-items">
+        <div class="tl-item"><strong>Order Pavneet Singh + PYQ book</strong> — financial constraint resolved by July</div>
+        <div class="tl-item"><strong>Pavneet Part 1</strong> — IR theories + Indian foreign policy</div>
+        <div class="tl-item">Google Analytics — Foundations + Ask Questions modules <span class="tag">Coursera</span></div>
+        <div class="tl-item"><strong>ICRC IHL</strong> — 1 weekend <span class="tag">Free cert</span></div>
+      </div>
+    </div>
+    <div class="tl-row">
+      <div><div class="tl-when">August</div><div class="tl-sub">Pavneet finish</div></div>
+      <div class="tl-items">
+        <div class="tl-item"><strong>Pavneet Part 2</strong> — UN, orgs, Cold War, contemporary issues</div>
+        <div class="tl-item"><strong>Heywood optional</strong> — only if 1 week ahead of pace</div>
+        <div class="tl-item">Google Analytics — Process Data + Analyse modules</div>
+        <div class="tl-item"><strong>UNSSC SDG track</strong> — 1 course, Sunday <span class="tag">Free cert</span></div>
+      </div>
+    </div>
+    <div class="tl-row">
+      <div><div class="tl-when">September</div><div class="tl-sub">OP Gauba</div></div>
+      <div class="tl-items">
+        <div class="tl-item"><strong>OP Gauba selected chapters</strong> — 2.5 weeks</div>
+        <div class="tl-item">Google Analytics cert <strong>completed</strong> by Sept 20 <span class="tag">Coursera</span></div>
+        <div class="tl-item"><strong>Advanced Analytics starts</strong> — last week Sept</div>
+        <div class="tl-item"><strong>Amnesty Refugee Rights</strong> · <strong>UNSSC Multilateralism</strong> — weekends</div>
+      </div>
+    </div>
+    <div class="tl-row">
+      <div><div class="tl-when">October</div><div class="tl-sub">Western thinkers</div></div>
+      <div class="tl-items">
+        <div class="tl-item"><strong>Mukherjee & Ramaswamy</strong> — one thinker per sitting, 3 weeks</div>
+        <div class="tl-item">Advanced Analytics continues — 45 min/day</div>
+        <div class="tl-item"><strong>Geneva Academy IHL</strong> — 1 course, 2 weekends <span class="tag">Free cert</span></div>
+        <div class="tl-item"><strong>V.N. Khanna optional</strong> — Ch.12–18, 4–5 days if pace allows</div>
+      </div>
+    </div>
+    <div class="tl-row">
+      <div><div class="tl-when">November</div><div class="tl-sub">Indian thinkers + JPAL</div></div>
+      <div class="tl-items">
+        <div class="tl-item"><strong>Bidyut Chakrabarty</strong> — weeks 13–14</div>
+        <div class="tl-item"><strong>Pavneet 2nd pass</strong> — IR theory + Indian FP chapters only</div>
+        <div class="tl-item"><strong>JPAL — Evaluation of Social Programs</strong> — weekends only <span class="tag">Starts Nov</span></div>
+        <div class="tl-item"><strong>World Bank OLC</strong> — 1 course alongside JPAL · Jeffrey Sachs SDG begins</div>
+      </div>
+    </div>
+    <div class="tl-row">
+      <div><div class="tl-when">December</div><div class="tl-sub">PYQs only</div></div>
+      <div class="tl-items">
+        <div class="tl-item"><strong>All CUET PG PYQs + UGC NET PYQs</strong> — timed, pattern recognition</div>
+        <div class="tl-item">Sachs SDG course finish · All major certs complete</div>
+        <div class="tl-item">From December: <strong>zero new courses, 100% exam focus</strong></div>
+        <div class="tl-item">2-hr full short notes revision every Sunday</div>
+      </div>
+    </div>
+    <div class="tl-row">
+      <div><div class="tl-when">Jan–Feb</div><div class="tl-sub">Mock phase</div></div>
+      <div class="tl-items">
+        <div class="tl-item"><strong>1 full EduGorilla mock daily</strong> — 75 Qs, 90 min, strictly timed</div>
+        <div class="tl-item">1-hr mistake review after each mock · Track score trend</div>
+        <div class="tl-item">Target: <strong>60+ correct consistently</strong> before exam</div>
+        <div class="tl-item">Saurabh Pandey daily · MEA + PIB bilateral updates</div>
+      </div>
+    </div>
+    <div class="tl-row">
+      <div><div class="tl-when">March–April</div><div class="tl-sub">Exam window</div></div>
+      <div class="tl-items">
+        <div class="tl-item">Last 2 weeks: short notes only, max 2 hrs/day · Sleep 7–8 hrs</div>
+        <div class="tl-item">Last 3 days: thinker tables + IR flashcards only</div>
+        <div class="tl-item"><strong>Exam day: 3-pass strategy · Start Unit IV first</strong></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== CERTIFICATES ===== -->
+<div id="certs" class="section">
+  <h2 class="sec-title">Certificate Stack</h2>
+  <p class="sec-sub">All free except Coursera (already bought for Analytics). Weekends only — never on weekdays.</p>
+
+  <div class="sh"><span class="sh-title">Tier 1 — Non-negotiable. Free. Prestigious names.</span></div>
+
+  <div class="cert-card">
+    <div class="cert-top">
+      <div><div class="cert-org">USIP — United States Institute of Peace</div><div class="cert-title">Peacebuilding + Conflict Resolution Certificate</div></div>
+      <span class="pill pill-green">Free</span>
+    </div>
+    <div class="cert-desc">Congress-funded institution. Their courses are used by actual diplomats and UN peacekeepers. The single most respected free IR cert available. An Indian IR student with USIP is immediately distinguishable.</div>
+    <div class="cert-footer"><span class="pill pill-gray">usip.org</span><span class="pill pill-gray">2–3 hrs each</span><span class="when-tag">📅 May–June, weekends</span></div>
+  </div>
+
+  <div class="cert-card">
+    <div class="cert-top">
+      <div><div class="cert-org">ICRC — International Committee of the Red Cross</div><div class="cert-title">International Humanitarian Law (IHL) Basics</div></div>
+      <span class="pill pill-green">Free</span>
+    </div>
+    <div class="cert-desc">IHL — laws of armed conflict, Geneva Conventions, war crimes. ICRC certs are respected by think tanks, UN bodies, and academic institutions. Rare among Indian IR students. Maps directly to JNU IR coursework.</div>
+    <div class="cert-footer"><span class="pill pill-gray">ICRC Online Learning</span><span class="pill pill-gray">~6 hrs total</span><span class="when-tag">📅 July, 1 weekend</span></div>
+  </div>
+
+  <div class="cert-card">
+    <div class="cert-top">
+      <div><div class="cert-org">UNSSC — UN System Staff College</div><div class="cert-title">UN SDGs + Multilateralism Courses</div></div>
+      <span class="pill pill-green">Free</span>
+    </div>
+    <div class="cert-desc">Official UN training institution. Courses on multilateral diplomacy, SDGs, and UN system. A certificate from an actual UN body carries weight no Coursera cert can match on a research CV.</div>
+    <div class="cert-footer"><span class="pill pill-gray">unssc.org</span><span class="pill pill-gray">2 courses</span><span class="when-tag">📅 Aug + Sept, Sundays</span></div>
+  </div>
+
+  <div class="cert-card">
+    <div class="cert-top">
+      <div><div class="cert-org">Geneva Academy of International Humanitarian Law</div><div class="cert-title">IHL + Human Rights Law Online Course</div></div>
+      <span class="pill pill-green">Free</span>
+    </div>
+    <div class="cert-desc">One of the most respected IHL institutions globally. Free courses on armed conflict, human rights law, and humanitarian affairs. Excellent for PhD applications. Complements ICRC cert with an academic-legal dimension.</div>
+    <div class="cert-footer"><span class="pill pill-gray">geneva-academy.ch</span><span class="pill pill-gray">1 course only</span><span class="when-tag">📅 October, 2 weekends</span></div>
+  </div>
+
+  <div class="rule"></div>
+  <div class="sh"><span class="sh-title">Tier 2 — High value. Strong research additions.</span></div>
+
+  <div class="cert-card">
+    <div class="cert-top">
+      <div><div class="cert-org">Amnesty International + edX</div><div class="cert-title">Human Rights: The Rights of Refugees</div></div>
+      <span class="pill pill-green">Free</span>
+    </div>
+    <div class="cert-desc">Refugee studies is one of the fastest-growing IR sub-fields. Directly relevant to UNHCR, IOM, and Oxfam-type roles. Pairs naturally with OP Gauba's rights chapters in September.</div>
+    <div class="cert-footer"><span class="pill pill-gray">edX — Amnesty</span><span class="pill pill-gray">~6 hrs</span><span class="when-tag">📅 September, 1 weekend</span></div>
+  </div>
+
+  <div class="cert-card">
+    <div class="cert-top">
+      <div><div class="cert-org">Coursera — Columbia University</div><div class="cert-title">The Age of Sustainable Development — Jeffrey Sachs</div></div>
+      <span class="pill pill-amber">Included in Coursera</span>
+    </div>
+    <div class="cert-desc">Taught by Jeffrey Sachs. Covers poverty, global health, climate, governance through an IR lens. Directly relevant to Unit VIII and JNU's own curriculum. Zero additional cost since Coursera access is already purchased.</div>
+    <div class="cert-footer"><span class="pill pill-gray">Columbia / Coursera</span><span class="pill pill-gray">~10 hrs</span><span class="when-tag">📅 November–December</span></div>
+  </div>
+
+  <div class="cert-card">
+    <div class="cert-top">
+      <div><div class="cert-org">World Bank Open Learning Campus</div><div class="cert-title">Development Policy + Governance</div></div>
+      <span class="pill pill-green">Free</span>
+    </div>
+    <div class="cert-desc">Free platform with courses on development policy, fragile states, and international finance. Pairs directly with JPAL in November. World Bank cert + JPAL = very strong research methods profile.</div>
+    <div class="cert-footer"><span class="pill pill-gray">olc.worldbank.org</span><span class="pill pill-gray">1 short course</span><span class="when-tag">📅 November, alongside JPAL</span></div>
+  </div>
+
+  <div class="cert-card">
+    <div class="cert-top">
+      <div><div class="cert-org">JPAL — Abdul Latif Jameel Poverty Action Lab</div><div class="cert-title">Evaluation of Social Programs</div></div>
+      <span class="pill pill-green">Free</span>
+    </div>
+    <div class="cert-desc">The gold standard in research methods for development and policy. Self-paced, 4–6 weeks. Directly relevant to IR research — understanding how to evaluate policy interventions is a core research skill JNU will value.</div>
+    <div class="cert-footer"><span class="pill pill-gray">JPAL MIT</span><span class="pill pill-gray">Weekends only</span><span class="when-tag">📅 November — core addition</span></div>
+  </div>
+
+  <div class="rule"></div>
+  <div class="sh"><span class="sh-title">Tier 3 — Post-exam (April 2027+)</span></div>
+  <div class="g2">
+    <div class="card-sm"><div class="card-title">NATO e-Learning</div><div class="card-sub">Hybrid warfare, arms control, transatlantic security. Free. Near-zero Indian IR students have this.</div></div>
+    <div class="card-sm"><div class="card-title">Stimson Center — Nuclear Policy</div><div class="card-sub">Washington DC think tank. Nuclear non-proliferation + India's nuclear doctrine track.</div></div>
+    <div class="card-sm"><div class="card-title">IMF Online Learning</div><div class="card-sub">International economics, macro fundamentals, trade policy. Free. imf.org/learning</div></div>
+    <div class="card-sm"><div class="card-title">Yale / Coursera — Global Financial Crisis</div><div class="card-sub">IPE through 2008 lens. IMF, World Bank, austerity politics. Included in Coursera access.</div></div>
+    <div class="card-sm"><div class="card-title">AIGP — IAPP</div><div class="card-sub">AI Governance Professional exam. Give after JNU MA + PM experience. The triple combination (IR + PM + AIGP) is globally rare.</div></div>
+  </div>
+
+  <div class="rule"></div>
+  <div class="sh"><span class="sh-title">Language — pick one and commit</span></div>
+  <div class="g2">
+    <div class="card-sm"><div style="display:flex;justify-content:space-between;margin-bottom:4px"><div class="card-title">French</div><span class="pill pill-green">Rank 1</span></div><div class="card-sub">Most globally versatile for IR. UNESCO, UNHCR, EU. 15 min/day on Duolingo + Alliance Française Delhi.</div></div>
+    <div class="card-sm"><div style="display:flex;justify-content:space-between;margin-bottom:4px"><div class="card-title">Mandarin</div><span class="pill pill-blue">Rank 2</span></div><div class="card-sub">India-China is the hottest research area. Even basic reading ability makes a researcher rare. HSK 1–2 prep.</div></div>
+    <div class="card-sm"><div style="display:flex;justify-content:space-between;margin-bottom:4px"><div class="card-title">Russian</div><span class="pill pill-amber">Rank 3</span></div><div class="card-sub">India-Russia, SCO, Eurasian security are underresearched. Russian-speaking Indian IR scholars are scarce.</div></div>
+    <div class="card-sm"><div style="display:flex;justify-content:space-between;margin-bottom:4px"><div class="card-title">Arabic</div><span class="pill pill-purple">Rank 4</span></div><div class="card-sub">Middle East, Gulf, OIC research tracks. Arabic-reading ability opens niche pathways very few occupy.</div></div>
+  </div>
+</div>
+
+<!-- ===== CAREER BLUEPRINT ===== -->
+<div id="career" class="section">
+  <h2 class="sec-title">10-Year Career Blueprint</h2>
+  <p class="sec-sub">Five phases. Three pillars. No ceiling.</p>
+
+  <div class="phase" style="margin-bottom:10px">
+    <div class="phase-head"><div><div class="phase-period">Phase 1 · Now → April 2027</div><div class="phase-title">Exam + foundation skills</div></div><span class="pill pill-green">Active now</span></div>
+    <div class="phase-body">
+      <div class="phase-col"><div class="col-label">Exam</div><div class="col-item">5 mandatory books as planned</div><div class="col-item">CUET PG → JNU IR seat</div></div>
+      <div class="phase-col"><div class="col-label">PM foundation (free)</div><div class="col-item"><strong>Inspired by Marty Cagan</strong> — read once</div><div class="col-item"><strong>Lenny's Newsletter</strong> weekly</div><div class="col-item"><strong>Product teardown</strong> — 1 app/week habit</div><div class="col-item"><strong>YC Startup School</strong> videos</div></div>
+      <div class="phase-col"><div class="col-label">Certs + skills</div><div class="col-item">Google Analytics + Advanced</div><div class="col-item">JPAL, USIP, ICRC, UNSSC</div><div class="col-item">Language app — 15 min/day</div></div>
+    </div>
+  </div>
+
+  <div class="phase" style="margin-bottom:10px">
+    <div class="phase-head"><div><div class="phase-period">Phase 2 · 2027–2029</div><div class="phase-title">JNU MA IR + PM skills + first income</div></div><span class="pill pill-blue">Study + earn</span></div>
+    <div class="phase-body">
+      <div class="phase-col"><div class="col-label">JNU coursework</div><div class="col-item">IR theory, security studies</div><div class="col-item">GIS + R applied to papers</div><div class="col-item">OSINT for thesis</div><div class="col-item">Think tank internship — Sem 3</div></div>
+      <div class="phase-col"><div class="col-label">PM courses</div><div class="col-item"><strong>Google PM Certificate</strong> — Sem 1</div><div class="col-item"><strong>Reforge / Product School</strong> — Sem 2</div><div class="col-item"><strong>SQL basics</strong> — Mode free tutorial</div><div class="col-item"><strong>Build 1 side project</strong> — IR tool</div></div>
+      <div class="phase-col"><div class="col-label">First income</div><div class="col-item"><span class="earn">▸ Freelance IR writing</span></div><div class="col-item"><span class="earn">▸ Policy brief writing</span></div><div class="col-item"><span class="earn">▸ CUET PG tutoring</span></div><div class="col-item">Target: ₹20–40k/month</div></div>
+    </div>
+  </div>
+
+  <div class="phase" style="margin-bottom:10px">
+    <div class="phase-head"><div><div class="phase-period">Phase 3 · 2029–2031</div><div class="phase-title">Enter tech + govtech + AIGP exam</div></div><span class="pill pill-amber">High income begins</span></div>
+    <div class="phase-body">
+      <div class="phase-col"><div class="col-label">Target roles</div><div class="col-item"><strong>Policy PM</strong> — Google, Meta, Microsoft India policy teams</div><div class="col-item"><strong>Associate PM</strong> — govtech startup</div><div class="col-item"><strong>Research PM</strong> — intl development org</div></div>
+      <div class="phase-col"><div class="col-label">AIGP + AI governance</div><div class="col-item"><strong>AIGP exam</strong> — IAPP. Give when IR + PM are both solid</div><div class="col-item">EU AI Act study</div><div class="col-item">UNESCO AI Ethics framework</div><div class="col-item">GPAI — Global Partnership on AI</div></div>
+      <div class="phase-col"><div class="col-label">Income range</div><div class="col-item"><span class="earn">₹20–45 LPA</span> — Policy PM India</div><div class="col-item"><span class="earn">$80–120k</span> — Intl org roles</div><div class="col-item">Freelance advisory begins</div></div>
+    </div>
+  </div>
+
+  <div class="phase" style="margin-bottom:10px">
+    <div class="phase-head"><div><div class="phase-period">Phase 4 · 2031–2034</div><div class="phase-title">Senior PM + AI governance advisory</div></div><span class="pill pill-purple">Leverage phase</span></div>
+    <div class="phase-body">
+      <div class="phase-col"><div class="col-label">Career tier</div><div class="col-item"><strong>Senior / Principal PM</strong> — AI products</div><div class="col-item"><strong>AI Governance consultant</strong></div><div class="col-item"><strong>Think tank senior fellow</strong></div></div>
+      <div class="phase-col"><div class="col-label">Build track</div><div class="col-item">Launch <strong>policy intelligence product</strong> — AI-powered geopolitical analysis</div><div class="col-item">Or: <strong>AI governance consultancy firm</strong></div><div class="col-item">IR + PM + AI = rare founding profile</div></div>
+      <div class="phase-col"><div class="col-label">Income range</div><div class="col-item"><span class="earn">₹60L–1.2Cr LPA</span></div><div class="col-item"><span class="earn">$150–300k</span> international</div><div class="col-item"><span class="earn">₹5–20L/engagement</span> consulting</div></div>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-head"><div><div class="phase-period">Phase 5 · 2034+</div><div class="phase-title">Firm, products, influence — the aristocrat ceiling</div></div><span class="pill pill-amber" style="background:rgba(232,168,58,0.15);color:var(--amber)">No ceiling</span></div>
+    <div class="phase-body">
+      <div class="phase-col"><div class="col-label">What this looks like</div><div class="col-item">Own advisory firm — governments, Fortune 500 on AI + geopolitical risk</div><div class="col-item">Product company — AI governance SaaS</div><div class="col-item">Visiting professor + published author + conference circuit</div></div>
+      <div class="phase-col"><div class="col-label">Why IR makes it different</div><div class="col-item">AI governance without geopolitical depth = compliance work. With IR = strategic advisory. Fee is 10× different.</div><div class="col-item">Access to diplomatic + multilateral networks pure tech PMs never get</div></div>
+      <div class="phase-col"><div class="col-label">Income ceiling</div><div class="col-item"><span class="earn">₹2–10 Cr/year</span> consulting + salary</div><div class="col-item"><span class="earn">Equity upside</span> if product funded</div><div class="col-item">Truly no ceiling once firm is running</div></div>
+    </div>
+  </div>
+
+  <div class="rule"></div>
+  <div class="sh"><span class="sh-title">Income trajectory</span></div>
+  <div class="g4">
+    <div class="income-card"><div class="income-period">2027–2029 · JNU</div><div class="income-range">₹20–40k</div><div class="income-unit">per month</div><div class="income-source">Freelance IR writing + tutoring + policy briefs alongside studies</div></div>
+    <div class="income-card"><div class="income-period">2029–2031 · Entry</div><div class="income-range">₹15–45L</div><div class="income-unit">per annum</div><div class="income-source">Policy PM / Associate PM / Research roles</div></div>
+    <div class="income-card"><div class="income-period">2031–2034 · Senior</div><div class="income-range">₹60L–1.2Cr</div><div class="income-unit">per annum</div><div class="income-source">Senior PM + consulting fees + advisory</div></div>
+    <div class="income-card"><div class="income-period">2034+ · Firm</div><div class="income-range">₹2–10Cr+</div><div class="income-unit">per annum</div><div class="income-source">AI governance firm + product equity + speaking</div></div>
+  </div>
+
+  <div class="rule"></div>
+  <div class="sh"><span class="sh-title">PM learning path</span></div>
+  <div class="pm-step">
+    <div class="pm-step-head"><div class="pm-step-when">Now → exam (free only)</div><span class="pill pill-green">Zero cost</span></div>
+    <div class="pm-items">
+      <div class="pm-item"><strong>Inspired by Marty Cagan</strong> — the PM bible, read once <span class="pay">₹600 book</span></div>
+      <div class="pm-item"><strong>Lenny's Newsletter</strong> — subscribe, read weekly <span class="free">free</span></div>
+      <div class="pm-item"><strong>Product teardown habit</strong> — 1 app/week, 10 lines on what works and why. Build the muscle, no tools needed <span class="free">free</span></div>
+      <div class="pm-item"><strong>YC Startup School videos</strong> — product thinking + problem framing <span class="free">free</span></div>
+      <div class="pm-item"><strong>Shreyas Doshi threads on X</strong> — archive, read 2–3/week <span class="free">free</span></div>
+    </div>
+  </div>
+  <div class="pm-step">
+    <div class="pm-step-head"><div class="pm-step-when">Coursera sale (June) — Semester 1 at JNU</div><span class="pill pill-blue">Included in Coursera</span></div>
+    <div class="pm-items">
+      <div class="pm-item"><strong>Google Project Management Certificate</strong> — Agile, Scrum, stakeholder management. Do in Sem 1, 1 hr/day <span class="pay">Coursera access</span></div>
+    </div>
+  </div>
+  <div class="pm-step">
+    <div class="pm-step-head"><div class="pm-step-when">JNU Semester 2–3</div><span class="pill pill-amber">Invest here</span></div>
+    <div class="pm-items">
+      <div class="pm-item"><strong>Reforge or Product School</strong> — most respected PM platforms <span class="pay">paid, worth it</span></div>
+      <div class="pm-item"><strong>SQL basics</strong> — Mode Analytics free SQL tutorial, 2 weeks. Non-negotiable for PM credibility <span class="free">free</span></div>
+      <div class="pm-item"><strong>Build something small</strong> — policy brief aggregator, IR news digest bot, CUET PG prep tool. No-code counts.</div>
+      <div class="pm-item"><strong>CSPO — Certified Scrum Product Owner</strong> — widely recognised PM credential <span class="pay">~₹15–25k</span></div>
+    </div>
+  </div>
+  <div class="pm-step">
+    <div class="pm-step-head"><div class="pm-step-when">Semester 3–4 · Target internships</div><span class="pill pill-purple">Apply</span></div>
+    <div class="pm-items">
+      <div class="pm-item"><strong>iSPIRT, EkStep Foundation, MOSIP, Samagra</strong> — govtech orgs where IR + PM profiles are actively wanted</div>
+      <div class="pm-item"><strong>Write 1 product case study</strong> using IR lens — conflict early-warning system, sanctions tracker, diplomatic cable search. This is your PM portfolio.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== WRITING & PORTFOLIO ===== -->
+<div id="writing" class="section">
+  <h2 class="sec-title">Writing & Portfolio</h2>
+  <p class="sec-sub">The pieces that build authority, get internships, and make PhD applications irresistible</p>
+
+  <div class="sh"><span class="sh-title">Before JNU — build the habit (exam prep phase)</span></div>
+
+  <div class="writing-card wc-green">
+    <div class="writing-type">Op-Ed — 500 words</div>
+    <div class="writing-title">India's Strategic Autonomy in the Russia-Ukraine War: The NAM Legacy Revisited</div>
+    <div class="writing-desc">Analyse India's abstentions at the UN Security Council through the lens of Non-Alignment 2.0. Argue that strategic autonomy is not fence-sitting but a deliberate foreign policy doctrine with historical continuity. Target: LinkedIn article or a personal blog/Substack. This one piece signals serious IR thinking immediately.</div>
+    <div class="writing-footer"><span class="pill pill-green">Start here</span><span class="pill pill-gray">500 words</span><span class="pill pill-gray">LinkedIn / Substack</span><span class="pill pill-gray">Unit IV exam prep</span></div>
+  </div>
+
+  <div class="writing-card wc-green">
+    <div class="writing-type">Analytical Note — 600 words</div>
+    <div class="writing-title">Realism vs Constructivism: Understanding India-China Relations Post-Galwan</div>
+    <div class="writing-desc">Apply two competing IR theories to the same real-world event. Show you can use theory as a lens, not just describe it. This kind of analytical writing is exactly what JNU IR professors look for — and it doubles as exam prep for Unit IV.</div>
+    <div class="writing-footer"><span class="pill pill-green">Month 2</span><span class="pill pill-gray">600 words</span><span class="pill pill-gray">LinkedIn</span><span class="pill pill-gray">IR theory exam prep</span></div>
+  </div>
+
+  <div class="writing-card wc-green">
+    <div class="writing-type">Comparative Essay — 800 words</div>
+    <div class="writing-title">Gandhi and Ambedkar on Caste: Two Visions of Indian Nationhood</div>
+    <div class="writing-desc">Write this while studying Bidyut Chakrabarty in Weeks 13–14. The exam loves this comparison — writing the essay cements the content far better than re-reading. The essay also serves as a thinking sample for JNU applications and interviews.</div>
+    <div class="writing-footer"><span class="pill pill-green">Month 5–6</span><span class="pill pill-gray">800 words</span><span class="pill pill-gray">Blog / Academia.edu</span><span class="pill pill-gray">Unit II exam prep</span></div>
+  </div>
+
+  <div class="rule"></div>
+  <div class="sh"><span class="sh-title">During JNU — Semesters 1 & 2</span></div>
+
+  <div class="writing-card wc-blue">
+    <div class="writing-type">Policy Brief — 1500 words · Think tank format</div>
+    <div class="writing-title">India's Act East Policy: Progress, Gaps, and Recommendations for ASEAN Engagement (2024–2030)</div>
+    <div class="writing-desc">Write in proper policy brief format: Executive Summary → Background → Analysis → Recommendations → Conclusion. Study how ORF India and Carnegie India format their briefs and replicate the structure. This piece, done well, can be submitted to think tank student competitions or published on your Substack with ORF-style formatting. The goal is to have it look indistinguishable from a junior fellow's work.</div>
+    <div class="writing-footer"><span class="pill pill-blue">Sem 1</span><span class="pill pill-gray">1500 words</span><span class="pill pill-gray">Think tank format</span><span class="pill pill-gray">Submit to ORF / Carnegie student track</span></div>
+  </div>
+
+  <div class="writing-card wc-blue">
+    <div class="writing-type">Data-backed Research Note — 1000 words</div>
+    <div class="writing-title">Mapping India's Bilateral Trade Agreements: A Geospatial Analysis</div>
+    <div class="writing-desc">Use QGIS or Tableau to create a visual map of India's trade agreements by region and GDP weight. Write a 1000-word analysis around the visualisation. This is the piece that demonstrates the rare quantitative-IR combination. A research note with an actual map embedded is something very few MA students produce. Publish on LinkedIn with the map as the preview image.</div>
+    <div class="writing-footer"><span class="pill pill-blue">Sem 1–2</span><span class="pill pill-gray">GIS / Tableau</span><span class="pill pill-gray">Data + IR combo</span><span class="pill pill-gray">LinkedIn + personal site</span></div>
+  </div>
+
+  <div class="writing-card wc-blue">
+    <div class="writing-type">Book Review — 700 words · Academic format</div>
+    <div class="writing-title">Review: [Choose a recently published IR book on India's foreign policy]</div>
+    <div class="writing-desc">Submit to EPW (Economic and Political Weekly) student section, or The Wire Ideas section, or International Studies Quarterly student review track. Getting even one published review in a serious outlet during your MA is a significant CV item. Format: summary of argument, critical engagement with 2–3 key claims, situate in broader IR literature, conclude with significance.</div>
+    <div class="writing-footer"><span class="pill pill-blue">Sem 2</span><span class="pill pill-gray">700 words</span><span class="pill pill-gray">Target: EPW / The Wire / ISQ</span><span class="pill pill-gray">First publication attempt</span></div>
+  </div>
+
+  <div class="rule"></div>
+  <div class="sh"><span class="sh-title">During JNU — Semesters 3 & 4</span></div>
+
+  <div class="writing-card wc-amber">
+    <div class="writing-type">Conference Paper — 4000–5000 words</div>
+    <div class="writing-title">Digital Sovereignty and the Geopolitics of AI Governance: India's Positioning in the Global AI Regulatory Landscape</div>
+    <div class="writing-desc">This is the piece that bridges IR expertise with AI governance — the exact intersection of your career direction. Submit to JNU's own IR conferences, ISA (International Studies Association) student sections, or IDSA's young scholars programme. A paper on AI governance + IR from a JNU MA student with data analytics background is genuinely novel. This becomes the first building block of the AIGP + IR profile.</div>
+    <div class="writing-footer"><span class="pill pill-amber">Sem 3</span><span class="pill pill-gray">5000 words</span><span class="pill pill-gray">Target: ISA, IDSA, JNU conference</span><span class="pill pill-amber">The career-defining piece</span></div>
+  </div>
+
+  <div class="writing-card wc-amber">
+    <div class="writing-type">OSINT Investigation Report — 1500 words</div>
+    <div class="writing-title">Open Source Verification of [Choose: a cross-border incident, a territorial claim, or a sanctions violation]</div>
+    <div class="writing-desc">Use Bellingcat-style OSINT methodology — satellite imagery analysis, social media geolocation, public records cross-referencing. Write up the methodology and findings in the Bellingcat report format. Even a modest investigation on a low-stakes topic demonstrates the skill. This piece is what makes you stand out at think tank interviews where they increasingly want researchers who can do open-source verification.</div>
+    <div class="writing-footer"><span class="pill pill-amber">Sem 3–4</span><span class="pill pill-gray">1500 words</span><span class="pill pill-gray">Bellingcat format</span><span class="pill pill-gray">Think tank portfolio piece</span></div>
+  </div>
+
+  <div class="writing-card wc-amber">
+    <div class="writing-type">MA Thesis — 15,000–20,000 words</div>
+    <div class="writing-title">Choose a topic at the intersection of: India's foreign policy + data/technology + a specific regional focus</div>
+    <div class="writing-desc">Suggested directions: (1) India's Digital Silk Road and Tech Diplomacy in Southeast Asia, (2) AI Governance Frameworks and India's Strategic Interests at the UN, (3) OSINT-based Analysis of Border Disputes in the Indo-Pacific. The thesis should use at least one quantitative method — even a simple regression or a QGIS map. It makes the thesis unusual and directly citable in future work. The JNU IR thesis is the most important research credential before a PhD application.</div>
+    <div class="writing-footer"><span class="pill pill-amber">Sem 4</span><span class="pill pill-gray">15,000–20,000 words</span><span class="pill pill-gray">Use GIS or R</span><span class="pill pill-amber">Most important research piece</span></div>
+  </div>
+
+  <div class="rule"></div>
+  <div class="sh"><span class="sh-title">Portfolio pieces — what the complete portfolio looks like at graduation</span></div>
+  <div class="g2">
+    <div class="portfolio-card">
+      <div class="portfolio-icon">📄</div>
+      <div class="portfolio-title">Policy brief collection (3–5 briefs)</div>
+      <div class="portfolio-desc">India-ASEAN, India-China, India-Middle East, India AI governance. ORF/Carnegie format. Hosted on personal site.</div>
+    </div>
+    <div class="portfolio-card">
+      <div class="portfolio-icon">🗺️</div>
+      <div class="portfolio-title">GIS / Data visualisation project</div>
+      <div class="portfolio-desc">A published map or interactive visualisation of an IR dataset. Conflict mapping, trade flows, or diplomatic network. Demonstrates quantitative IR uniquely.</div>
+    </div>
+    <div class="portfolio-card">
+      <div class="portfolio-icon">🔍</div>
+      <div class="portfolio-title">OSINT investigation writeup</div>
+      <div class="portfolio-desc">Bellingcat-format open source investigation. Even a modest one on a verifiable event. Rare skill in Indian IR research.</div>
+    </div>
+    <div class="portfolio-card">
+      <div class="portfolio-icon">💡</div>
+      <div class="portfolio-title">PM product case study</div>
+      <div class="portfolio-desc">How would you build a conflict early-warning product, a sanctions tracker, or a diplomatic news aggregator? Written as a PM spec with IR domain framing.</div>
+    </div>
+    <div class="portfolio-card">
+      <div class="portfolio-icon">📰</div>
+      <div class="portfolio-title">Published op-eds (2–3 minimum)</div>
+      <div class="portfolio-desc">The Wire, EPW Ideas, ORF commentary, or your own Substack. At least one in a named outlet. Shows public writing ability — valued by think tanks and JNU faculty equally.</div>
+    </div>
+    <div class="portfolio-card">
+      <div class="portfolio-icon">🎓</div>
+      <div class="portfolio-title">Conference paper (1 presented)</div>
+      <div class="portfolio-desc">AI governance + IR intersection paper presented at ISA, IDSA, or JNU conference. The piece that locks in the career direction and signals PhD-readiness.</div>
+    </div>
+    <div class="portfolio-card">
+      <div class="portfolio-icon">📊</div>
+      <div class="portfolio-title">Research paper with quant method</div>
+      <div class="portfolio-desc">Any paper using R, QGIS, or basic statistical analysis on an IR question. Published in a student journal or posted on SSRN. Demonstrates the rare IR + quantitative combination.</div>
+    </div>
+    <div class="portfolio-card">
+      <div class="portfolio-icon">🌐</div>
+      <div class="portfolio-title">Personal site / Substack</div>
+      <div class="portfolio-desc">The container for everything. Policy briefs, op-eds, project links, CV, cert logos. Should be live before the first think tank internship application. Build during Sem 1.</div>
+    </div>
+  </div>
+
+  <div class="rule"></div>
+  <div class="sh"><span class="sh-title">Target publications to aim for</span></div>
+  <div class="g3">
+    <div class="card-sm"><div class="card-title">ORF India</div><div class="card-sub">Submit 600-word commentaries on Indian foreign policy. Most student-friendly major think tank in India.</div></div>
+    <div class="card-sm"><div class="card-title">The Wire — Ideas</div><div class="card-sub">Op-ed format, 800–1200 words. Accepts well-argued IR perspectives from graduate students.</div></div>
+    <div class="card-sm"><div class="card-title">EPW — Economic & Political Weekly</div><div class="card-sub">Book reviews and short notes section. Getting one EPW piece published as a student is significant.</div></div>
+    <div class="card-sm"><div class="card-title">IDSA — Young Scholars</div><div class="card-sub">Institute for Defence Studies. Conference papers and policy briefs from JNU students regularly appear here.</div></div>
+    <div class="card-sm"><div class="card-title">The Diplomat</div><div class="card-sub">Asia-Pacific focused. Accepts 800-word analytical pieces on India's foreign policy and regional security.</div></div>
+    <div class="card-sm"><div class="card-title">SSRN / Academia.edu</div><div class="card-sub">Self-publish working papers here. Even an unreviewed paper with a good title gets cited and builds a Google Scholar presence.</div></div>
+  </div>
+</div>
+
+</div><!-- /main -->
+
+<!-- ===== READING LIST SECTION ===== -->
+<div class="main">
+<div id="reading" class="section">
+  <h2 class="sec-title">General Reading List</h2>
+  <p class="sec-sub">Not exam targets. Books that build the mind behind the career. Read 30 min/day alongside exam prep — mornings or before sleep.</p>
+
+  <div style="background:var(--green-dim);border:0.5px solid var(--green-border);border-radius:var(--r);padding:1rem 1.25rem;margin-bottom:1.5rem">
+    <p style="font-size:13px;color:var(--text);line-height:1.7"><strong>The sequencing logic:</strong> IR comes first — always. The books below are not competitors to exam prep. They run in the background at 30 min/day, one book active at a time. The order moves from thinking infrastructure → analytical frameworks → IR-specific depth → writing craft → AI governance (deferred until JNU years). Books marked <span style="color:var(--amber)">defer</span> are for the post-JNU phase when AI governance becomes the active focus.</p>
+  </div>
+
+  <!-- CURRENTLY READING -->
+  <div class="sh"><span class="sh-title">Currently reading</span></div>
+  <div style="background:var(--bg2);border:0.5px solid var(--green-border);border-radius:var(--r);padding:1rem 1.125rem;margin-bottom:1.5rem;position:relative;overflow:hidden">
+    <div style="position:absolute;top:0;left:0;right:0;height:3px;background:var(--green)"></div>
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:6px">
+      <div>
+        <div style="font-size:10px;font-weight:500;color:var(--green);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">Reading now · Book 01</div>
+        <div style="font-size:14px;font-weight:500;color:var(--text)">The Art of Thinking Clearly</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:2px">Rolf Dobelli</div>
+      </div>
+      <span class="pill pill-green">Active</span>
+    </div>
+    <p style="font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:8px">99 cognitive biases explained in 2–3 pages each. The most important book for anyone who will spend a career making arguments — in research, in policy briefs, in product decisions. Confirmation bias, sunk cost fallacy, survivorship bias — he names every trap that will distort IR analysis if unexamined. Read 2–3 chapters daily. No heavy notes needed — just recognition. After finishing, write down your top 5 recurring thinking errors and keep that list permanently.</p>
+    <div style="display:flex;gap:6px;flex-wrap:wrap">
+      <span class="pill pill-gray">3–4 weeks</span>
+      <span class="pill pill-gray">2–3 chapters/day</span>
+      <span class="pill pill-green">Thinking infrastructure</span>
+    </div>
+  </div>
+
+  <!-- PHASE 1 -->
+  <div class="sh"><span class="sh-title">Phase 1 — Thinking & writing infrastructure · Read before or alongside NCERTs</span></div>
+  <div style="display:grid;grid-template-columns:1fr;gap:8px;margin-bottom:1.5rem">
+
+    <div style="background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--r);padding:1rem 1.125rem;position:relative;overflow:hidden">
+      <div style="position:absolute;top:0;left:0;right:0;height:2px;background:var(--green)"></div>
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:6px">
+        <div><div style="font-size:10px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">Book 02 · After Art of Thinking Clearly</div><div style="font-size:13px;font-weight:500;color:var(--text)">Several Short Sentences About Writing</div><div style="font-size:12px;color:var(--text2);margin-top:2px">Verlyn Klinkenborg</div></div>
+        <span class="pill pill-green">Do next</span>
+      </div>
+      <p style="font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:8px">The most immediately practical writing book that exists. Klinkenborg's method — short sentences, one idea per sentence, no sentence that cannot be defended — is the foundation of every policy brief, op-ed, and research paper he will write. The exam thinker comparison tables, the JNU essay answers, the ORF commentary — all of them get better after this book. Read slowly, do every exercise. This is a workbook, not a reading book.</p>
+      <div style="display:flex;gap:6px;flex-wrap:wrap"><span class="pill pill-gray">2–3 weeks</span><span class="pill pill-gray">Do every exercise</span><span class="pill pill-green">Writing craft</span></div>
+    </div>
+
+    <div style="background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--r);padding:1rem 1.125rem;position:relative;overflow:hidden">
+      <div style="position:absolute;top:0;left:0;right:0;height:2px;background:var(--blue)"></div>
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:6px">
+        <div><div style="font-size:10px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">Book 03 · During Pavneet Singh phase</div><div style="font-size:13px;font-weight:500;color:var(--text)">Thinking Fast and Slow</div><div style="font-size:12px;color:var(--text2);margin-top:2px">Daniel Kahneman</div></div>
+        <span class="pill pill-blue">Phase 2</span>
+      </div>
+      <p style="font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:8px">System 1 and System 2 thinking is the framework every policymaker, researcher, and analyst references. For IR specifically — understanding how cognitive shortcuts distort foreign policy decisions, how negotiators make errors under pressure, how public opinion on international events is shaped by availability bias — this book is the analytical backbone. Read heavily annotated. Slow book. Do not rush it.</p>
+      <div style="display:flex;gap:6px;flex-wrap:wrap"><span class="pill pill-gray">6–8 weeks</span><span class="pill pill-gray">Heavy annotation</span><span class="pill pill-blue">Analytical framework</span></div>
+    </div>
+
+  </div>
+
+  <!-- PHASE 2 -->
+  <div class="sh"><span class="sh-title">Phase 2 — Analytical architecture · Read during Gauba & thinkers phase (Jul–Oct)</span></div>
+  <div style="display:grid;grid-template-columns:1fr;gap:8px;margin-bottom:1.5rem">
+
+    <div style="background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--r);padding:1rem 1.125rem;position:relative;overflow:hidden">
+      <div style="position:absolute;top:0;left:0;right:0;height:2px;background:var(--amber)"></div>
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:6px">
+        <div><div style="font-size:10px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">Book 04 · September–October</div><div style="font-size:13px;font-weight:500;color:var(--text)">Seeing Like a State</div><div style="font-size:12px;color:var(--text2);margin-top:2px">James C. Scott</div></div>
+        <span class="pill pill-amber">High priority</span>
+      </div>
+      <p style="font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:8px">One of the most important books on this entire list for IR. Scott's central argument — that states impose legibility on complex social systems and fail catastrophically because local knowledge cannot be standardised — is directly relevant to state theory, development policy, IR institutional failure, and later AI governance. Every JNU thesis that engages with state capacity will benefit from this framework. Read slowly, annotate every chapter with one IR application. You will cite this for a decade.</p>
+      <div style="display:flex;gap:6px;flex-wrap:wrap"><span class="pill pill-gray">6–8 weeks</span><span class="pill pill-gray">Annotate heavily</span><span class="pill pill-amber">State theory · IR core</span></div>
+    </div>
+
+    <div style="background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--r);padding:1rem 1.125rem;position:relative;overflow:hidden">
+      <div style="position:absolute;top:0;left:0;right:0;height:2px;background:var(--amber)"></div>
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:6px">
+        <div><div style="font-size:10px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">Book 05 · October–November</div><div style="font-size:13px;font-weight:500;color:var(--text)">The Tragedy of Great Power Politics</div><div style="font-size:12px;color:var(--text2);margin-top:2px">John J. Mearsheimer</div></div>
+        <span class="pill pill-amber">IR essential</span>
+      </div>
+      <p style="font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:8px">Offensive realism — the idea that great powers are structurally condemned to compete for power regardless of intentions. Read Chapters 1–3 carefully for the structural realism framework. This is Unit IV exam content made rigorous. For JNU IR, Mearsheimer is a foundational thinker — professors will expect familiarity. The structural realism lens also explains India-China competition, US-China rivalry, and NATO expansion in ways that surface-level news coverage cannot. Read Part 1 carefully, use rest as reference.</p>
+      <div style="display:flex;gap:6px;flex-wrap:wrap"><span class="pill pill-gray">5–6 weeks</span><span class="pill pill-gray">Ch.1–3 carefully</span><span class="pill pill-amber">Realism · Exam relevant</span></div>
+    </div>
+
+    <div style="background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--r);padding:1rem 1.125rem;position:relative;overflow:hidden">
+      <div style="position:absolute;top:0;left:0;right:0;height:2px;background:var(--purple)"></div>
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:6px">
+        <div><div style="font-size:10px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">Book 06 · November–December</div><div style="font-size:13px;font-weight:500;color:var(--text)">Superforecasting</div><div style="font-size:12px;color:var(--text2);margin-top:2px">Philip Tetlock</div></div>
+        <span class="pill pill-purple">Analytical edge</span>
+      </div>
+      <p style="font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:8px">Teaches calibrated probabilistic reasoning — the skill that separates good analysts from opinion-givers. Tetlock's research shows that specific thinking habits produce dramatically better predictions about geopolitical events. For IR research and think tank work, the ability to express calibrated uncertainty rather than false confidence is a core professional competency. After reading, you will express uncertainty in ranges rather than certainties. Your analysis becomes more honest and more useful.</p>
+      <div style="display:flex;gap:6px;flex-wrap:wrap"><span class="pill pill-gray">4–5 weeks</span><span class="pill pill-gray">Test yourself on exercises</span><span class="pill pill-purple">Forecasting · Analysis</span></div>
+    </div>
+
+  </div>
+
+  <!-- PHASE 3 -->
+  <div class="sh"><span class="sh-title">Phase 3 — Domain depth · Read during JNU Semesters 1–2 (2027–2028)</span></div>
+  <div style="display:grid;grid-template-columns:1fr;gap:8px;margin-bottom:1.5rem">
+
+    <div style="background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--r);padding:1rem 1.125rem;position:relative;overflow:hidden">
+      <div style="position:absolute;top:0;left:0;right:0;height:2px;background:var(--green)"></div>
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:6px">
+        <div><div style="font-size:10px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">Book 07 · JNU Semester 1</div><div style="font-size:13px;font-weight:500;color:var(--text)">Why Nations Fail</div><div style="font-size:12px;color:var(--text2);margin-top:2px">Daron Acemoglu & James Robinson</div></div>
+        <span class="pill pill-green">JNU Sem 1</span>
+      </div>
+      <p style="font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:8px">Institutions as the primary driver of development and state outcomes — extractive vs inclusive institutions determine whether nations prosper. This framework maps directly onto IR: why some states become regional powers while others remain peripheral, how colonial institutional legacies shape foreign policy, why development aid fails in weak institutional contexts. Essential for the development + IR intersection. Read alongside current IR news — apply the framework to every story.</p>
+      <div style="display:flex;gap:6px;flex-wrap:wrap"><span class="pill pill-gray">6 weeks</span><span class="pill pill-gray">Apply to current news</span><span class="pill pill-green">Institutional economics · IR</span></div>
+    </div>
+
+    <div style="background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--r);padding:1rem 1.125rem;position:relative;overflow:hidden">
+      <div style="position:absolute;top:0;left:0;right:0;height:2px;background:var(--green)"></div>
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:6px">
+        <div><div style="font-size:10px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">Book 08 · JNU Semester 1–2</div><div style="font-size:13px;font-weight:500;color:var(--text)">Poor Economics</div><div style="font-size:12px;color:var(--text2);margin-top:2px">Abhijit Banerjee & Esther Duflo</div></div>
+        <span class="pill pill-green">JNU Sem 1–2</span>
+      </div>
+      <p style="font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:8px">Read for two things simultaneously: the content (how development interventions actually work or fail in poor communities, RCT methodology, evidence-based policy) and the craft (how to write rigorous analytical work accessibly without dumbing it down). Banerjee and Duflo are writing models as much as content models. For JNU IR students interested in development + IR intersection, this is the empirical backbone of South-South cooperation, foreign aid effectiveness, and India's development diplomacy research.</p>
+      <div style="display:flex;gap:6px;flex-wrap:wrap"><span class="pill pill-gray">5–6 weeks</span><span class="pill pill-gray">Read every footnote</span><span class="pill pill-green">Development economics · Craft</span></div>
+    </div>
+
+    <div style="background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--r);padding:1rem 1.125rem;position:relative;overflow:hidden">
+      <div style="position:absolute;top:0;left:0;right:0;height:2px;background:var(--blue)"></div>
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:6px">
+        <div><div style="font-size:10px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">Book 09 · JNU Semester 2</div><div style="font-size:13px;font-weight:500;color:var(--text)">Factfulness</div><div style="font-size:12px;color:var(--text2);margin-top:2px">Hans Rosling</div></div>
+        <span class="pill pill-blue">JNU Sem 2</span>
+      </div>
+      <p style="font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:8px">Data-driven correction of every instinct about global development. Rosling demonstrates that most people's mental models of the world are factually wrong in systematic ways — and for IR researchers writing about the Global South, operating from accurate baseline data is not optional. Also study Rosling's communication method: he is the best model for making data emotionally compelling without distorting it. Fast read but verify every instinct you have about development data after.</p>
+      <div style="display:flex;gap:6px;flex-wrap:wrap"><span class="pill pill-gray">3–4 weeks</span><span class="pill pill-gray">Fast read</span><span class="pill pill-blue">Global development data · IR</span></div>
+    </div>
+
+    <div style="background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--r);padding:1rem 1.125rem;position:relative;overflow:hidden">
+      <div style="position:absolute;top:0;left:0;right:0;height:2px;background:var(--purple)"></div>
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:6px">
+        <div><div style="font-size:10px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">Book 10 · JNU Semester 2–3</div><div style="font-size:13px;font-weight:500;color:var(--text)">Good Strategy / Bad Strategy</div><div style="font-size:12px;color:var(--text2);margin-top:2px">Richard Rumelt</div></div>
+        <span class="pill pill-purple">JNU Sem 2–3</span>
+      </div>
+      <p style="font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:8px">The clearest definition of what strategy actually means: a diagnosis, a guiding policy, and coherent actions. Most government policy documents and think tank reports Rumelt would classify as bad strategy — lists of goals dressed up as plans. Reading this makes you immediately better at writing policy briefs and identifying weak thinking in documents you critique. Apply the kernel framework (diagnosis → guiding policy → actions) to every policy document you read from now on. The gaps you find are your articles.</p>
+      <div style="display:flex;gap:6px;flex-wrap:wrap"><span class="pill pill-gray">4 weeks</span><span class="pill pill-gray">Apply to every policy doc</span><span class="pill pill-purple">Strategy · Policy analysis</span></div>
+    </div>
+
+    <div style="background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--r);padding:1rem 1.125rem;position:relative;overflow:hidden">
+      <div style="position:absolute;top:0;left:0;right:0;height:2px;background:var(--coral)"></div>
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:6px">
+        <div><div style="font-size:10px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">Book 11 · JNU Semester 3 · After writing your first 2 pieces</div><div style="font-size:13px;font-weight:500;color:var(--text)">On Writing Well</div><div style="font-size:12px;color:var(--text2);margin-top:2px">William Zinsser</div></div>
+        <span class="pill pill-gray">Sem 3</span>
+      </div>
+      <p style="font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:8px">Where Klinkenborg gives sentence-level craft, Zinsser gives structure, voice, and the discipline of revision for long-form non-fiction. Read this after you have written your first two published pieces — you will understand it differently having produced work than before. The revision methodology alone is worth the read: it teaches you to cut, not just add. Read it a second time six months later — it teaches different things at different stages of your writing life.</p>
+      <div style="display:flex;gap:6px;flex-wrap:wrap"><span class="pill pill-gray">4 weeks</span><span class="pill pill-gray">Read after first 2 pieces</span><span class="pill pill-gray">Writing structure · Revision</span></div>
+    </div>
+
+  </div>
+
+  <!-- DEFERRED -->
+  <div class="sh"><span class="sh-title">Deferred — AI governance phase · Read post-JNU when AI policy becomes active focus</span></div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px;margin-bottom:1.5rem">
+    <div class="card-sm">
+      <div style="display:flex;justify-content:space-between;margin-bottom:4px"><div class="card-title">The Atlas of AI</div><span class="pill pill-amber">Defer</span></div>
+      <div class="card-sub">Kate Crawford. Maps the material and political costs of AI — labour exploitation, data colonialism, Global South impacts. The empirical backbone of AI governance writing. Read when AI policy becomes the active track.</div>
+    </div>
+    <div class="card-sm">
+      <div style="display:flex;justify-content:space-between;margin-bottom:4px"><div class="card-title">The Alignment Problem</div><span class="pill pill-amber">Defer</span></div>
+      <div class="card-sub">Brian Christian. Accessible AI technical literacy — machine learning, value alignment, AI safety failures explained in prose. Read before AIGP exam. Not needed during JNU IR years.</div>
+    </div>
+  </div>
+
+  <!-- LIVE SOURCES -->
+  <div class="rule"></div>
+  <div class="sh"><span class="sh-title">Live sources — what to read alongside books (from the Field Manual, adapted for IR)</span></div>
+  <div style="background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--r);padding:1rem 1.25rem;margin-bottom:1.5rem">
+    <div style="font-size:11px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Weekly — 45 min, pick 2–3 items and read fully</div>
+    <div style="display:grid;grid-template-columns:1fr;gap:0">
+      <div style="display:flex;gap:12px;padding:8px 0;border-bottom:0.5px solid var(--border);align-items:flex-start">
+        <div style="font-size:12px;font-weight:500;color:var(--text);min-width:130px;flex-shrink:0">The India Forum</div>
+        <div style="font-size:12px;color:var(--text2);line-height:1.5">theindiaforum.in — Serious Indian policy analysis and social science. Governance, development, technology from Indian institutional context. Essential for grounding IR in Indian policy reality.</div>
+      </div>
+      <div style="display:flex;gap:12px;padding:8px 0;border-bottom:0.5px solid var(--border);align-items:flex-start">
+        <div style="font-size:12px;font-weight:500;color:var(--text);min-width:130px;flex-shrink:0">Rest of World</div>
+        <div style="font-size:12px;color:var(--text2);line-height:1.5">restofworld.org — Technology journalism focused on non-Western contexts. Africa, South Asia, Southeast Asia, Latin America. Primary empirical source for Global South IR and development stories.</div>
+      </div>
+      <div style="display:flex;gap:12px;padding:8px 0;border-bottom:0.5px solid var(--border);align-items:flex-start">
+        <div style="font-size:12px;font-weight:500;color:var(--text);min-width:130px;flex-shrink:0">Works in Progress</div>
+        <div style="font-size:12px;color:var(--text2);line-height:1.5">worksinprogress.news — Long-form analytical writing on technology, institutions, and policy. Extremely high writing quality. Study each piece for how the author structures an argument and uses evidence.</div>
+      </div>
+      <div style="display:flex;gap:12px;padding:8px 0;border-bottom:0.5px solid var(--border);align-items:flex-start">
+        <div style="font-size:12px;font-weight:500;color:var(--text);min-width:130px;flex-shrink:0">Phenomenal World</div>
+        <div style="font-size:12px;color:var(--text2);line-height:1.5">phenomenalworld.org — Development economics and political economy at high analytical quality. Free weekly. Technology, labour, development, and policy with rigour that journalism cannot match. Writing standard to aspire to.</div>
+      </div>
+      <div style="display:flex;gap:12px;padding:8px 0;align-items:flex-start">
+        <div style="font-size:12px;font-weight:500;color:var(--text);min-width:130px;flex-shrink:0">ORF + IDSA + CPR</div>
+        <div style="font-size:12px;color:var(--text2);line-height:1.5">orfonline.org · idsa.in · cprindia.org — Indian think tanks. Read their publications to understand the analytical style expected in the organisations you will eventually apply to. Note argument structure as much as content.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- READING RULES -->
+  <div class="sh"><span class="sh-title">Three rules for reading that actually builds thinking</span></div>
+  <div style="background:var(--bg3);border-radius:var(--r);padding:1rem 1.25rem">
+    <div style="display:flex;gap:10px;padding:7px 0;border-bottom:0.5px solid var(--border)">
+      <span style="font-size:11px;font-weight:500;color:var(--green);min-width:24px;flex-shrink:0;margin-top:1px">01</span>
+      <p style="font-size:13px;color:var(--text2);line-height:1.5"><strong style="color:var(--text)">Read for argument, not information.</strong> Every book has one central claim. Find it in the first 50 pages. Everything else is evidence. Once you have the claim and the key evidence, you have the book.</p>
+    </div>
+    <div style="display:flex;gap:10px;padding:7px 0;border-bottom:0.5px solid var(--border)">
+      <span style="font-size:11px;font-weight:500;color:var(--green);min-width:24px;flex-shrink:0;margin-top:1px">02</span>
+      <p style="font-size:13px;color:var(--text2);line-height:1.5"><strong style="color:var(--text)">Annotate or it did not happen.</strong> Three questions per chapter: What is the author claiming? What evidence supports it? Where do I disagree or see a gap? If you cannot answer these, reread that chapter.</p>
+    </div>
+    <div style="display:flex;gap:10px;padding:7px 0">
+      <span style="font-size:11px;font-weight:500;color:var(--green);min-width:24px;flex-shrink:0;margin-top:1px">03</span>
+      <p style="font-size:13px;color:var(--text2);line-height:1.5"><strong style="color:var(--text)">Apply immediately.</strong> After each book write one paragraph connecting its core idea to IR, India's foreign policy, or the career direction. This is not optional. The application is where reading becomes thinking.</p>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<div style="max-width:900px;margin:0 auto;padding:0 1.25rem 2rem;font-size:11px;color:var(--text3);text-align:center;border-top:0.5px solid var(--border);padding-top:1rem;margin-top:1rem">
+  JNU MA International Relations · CUET PG 2027 · Prepared with comprehensive research · Share this with the student
+</div>
+
+<script>
+function show(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  const btns = document.querySelectorAll('.nav-btn');
+  const labels = ['overview','books','timeline','certs','career','writing','reading'];
+  btns[labels.indexOf(id)].classList.add('active');
+  window.scrollTo({top: document.querySelector('.nav-wrap').offsetTop - 10, behavior: 'smooth'});
+}
+</script>
+</body>
+</html>
